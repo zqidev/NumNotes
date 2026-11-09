@@ -105,7 +105,11 @@
 
   function isEditable(el: EventTarget | null): boolean {
     const e = el as HTMLElement | null;
-    return !!e && (e.isContentEditable || ['INPUT', 'TEXTAREA'].includes(e.tagName));
+    return !!e && (
+      e.isContentEditable ||
+      !!e.closest('[contenteditable="true"]') ||
+      ['INPUT', 'TEXTAREA'].includes(e.tagName)
+    );
   }
 
   onMount(() => {
@@ -121,7 +125,7 @@
       input.click();
     };
     const onPaste = (e: ClipboardEvent) => {
-      if (isEditable(e.target) || !e.clipboardData) return;
+      if (e.defaultPrevented || isEditable(e.target) || !e.clipboardData) return;
       const hasContent = e.clipboardData.files.length || e.clipboardData.types.some((t) => t === 'text/html' || t === 'text/plain');
       if (!hasContent) return;
       e.preventDefault();

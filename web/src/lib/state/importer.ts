@@ -130,7 +130,8 @@ export async function addImports(
       target = current;
     } else {
       const mode = destination.kind === 'new' ? destination.mode : 'slides';
-      const title = items.length === 1 ? items[0].name.replace(/\.[^.]+$/, '').slice(0, 40) : undefined;
+      const filenameTitle = items.length === 1 ? items[0].name.replace(/\.[^.]+$/, '').slice(0, 40) : undefined;
+      const title = mode === 'document' ? documentTitle(blocks) ?? filenameTitle : filenameTitle;
       target = newSection(mode, title, proj.sections.length);
       if (target.mode === 'slides') target.slides = [];
       if (target.mode === 'document') target.doc = doc();
@@ -143,6 +144,16 @@ export async function addImports(
   // Show what was just added.
   if (target) store.select({ section: target.id, slide: firstNewSlide, items: [] });
   return target;
+}
+
+function documentTitle(blocks: { nodes: RichNode[] }[]): string | undefined {
+  for (const block of blocks) {
+    for (const node of block.nodes) {
+      const text = plain(node).split('\n').map((line) => line.trim()).find(Boolean);
+      if (text) return text.slice(0, 40);
+    }
+  }
+  return undefined;
 }
 
 function place(target: Section, metas: AssetMeta[], blocks: { name: string; nodes: RichNode[] }[]) {

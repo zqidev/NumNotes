@@ -13,6 +13,7 @@
   let runtime: ViewerRuntime | null = null;
   let exited = $state(false);
   let ready = $state(false);
+  let previewError = $state('');
   let focused = $state(false);
   let photoFailed = $state(false);
   let pressed = $state<number | null>(null);
@@ -53,9 +54,16 @@
     if (!bundle || !runtime || !project) return;
     await loadStore(project.id);
     exited = false;
-    await runtime.load(bundle, savedStore);
-    ready = true;
-    showSelection();
+    ready = false;
+    previewError = '';
+    try {
+      if (!(await runtime.load(bundle, savedStore))) return;
+      ready = true;
+      showSelection();
+    } catch (e) {
+      ready = false;
+      previewError = (e as Error).message;
+    }
   }
 
   function showSelection() {
@@ -144,7 +152,9 @@
   {#if exited}
     <button class="overlay" onclick={restart}>App closed. Click to reopen.</button>
   {:else if !ready}
-    <div class="overlay">{build.error ?? 'Building…'}</div>
+    <button class="overlay" onclick={previewError ? restart : undefined}>
+      {previewError ? `Preview unavailable: ${previewError}` : build.error ?? 'Building…'}
+    </button>
   {/if}
 {/snippet}
 

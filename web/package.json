@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "make -C ../viewer install-web && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "check": "svelte-check --tsconfig ./tsconfig.app.json"
